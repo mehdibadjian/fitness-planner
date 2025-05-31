@@ -1,11 +1,17 @@
+"use client"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import WorkoutTracker from "@/components/workout-tracker"
 import SmokingTracker from "@/components/smoking-tracker"
 import ProgressDashboard from "@/components/progress-dashboard"
+import SyncStatus from "@/components/sync-status"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart3, Calendar, Heart } from "lucide-react"
+import { BarChart3, Calendar, Heart, Settings } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function TrackingPage() {
+  const { Toaster } = useToast()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
@@ -15,7 +21,7 @@ export default function TrackingPage() {
         </div>
 
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -27,6 +33,10 @@ export default function TrackingPage() {
             <TabsTrigger value="smoking" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
               Smoking
+            </TabsTrigger>
+            <TabsTrigger value="sync" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Sync
             </TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
@@ -47,6 +57,12 @@ export default function TrackingPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="sync">
+            <div className="max-w-2xl mx-auto">
+              <SyncStatus />
+            </div>
+          </TabsContent>
+
           <TabsContent value="history">
             <Card>
               <CardHeader>
@@ -62,6 +78,7 @@ export default function TrackingPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <Toaster />
     </div>
   )
 }

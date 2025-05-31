@@ -5,33 +5,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { TrendingDown, TrendingUp, Calendar, Target, Award, Zap } from "lucide-react"
-import { getWorkoutStats, getSmokingStats, getSmokingProgress } from "@/lib/actions"
-
-interface Stats {
-  workout: any
-  smoking: any
-  smokingProgress: any[]
-}
+import { getWorkoutStats, getSmokingStats, getSmokingProgress } from "@/lib/storage"
 
 export default function ProgressDashboard() {
-  const [stats, setStats] = useState<Stats>({
-    workout: null,
-    smoking: null,
+  const [stats, setStats] = useState({
+    workout: {
+      total_workouts: 0,
+      completed_workouts: 0,
+      avg_duration: 0,
+      avg_energy: 0,
+    },
+    smoking: {
+      avg_daily: 0,
+      best_day: 0,
+      worst_day: 0,
+      total_smoked: 0,
+    },
     smokingProgress: [],
   })
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    loadStats()
+    // Only run on client side
+    if (typeof window !== "undefined") {
+      loadStats()
+    }
   }, [])
 
-  const loadStats = async () => {
+  const loadStats = () => {
     try {
-      const [workoutStats, smokingStats, smokingProgress] = await Promise.all([
-        getWorkoutStats(),
-        getSmokingStats(),
-        getSmokingProgress(),
-      ])
+      const workoutStats = getWorkoutStats()
+      const smokingStats = getSmokingStats()
+      const smokingProgress = getSmokingProgress()
 
       setStats({
         workout: workoutStats,
@@ -132,20 +137,26 @@ export default function ProgressDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {stats.smokingProgress.map((week, index) => (
-              <div key={week.week_number} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Badge variant={week.avg_cigarettes <= week.avg_target ? "default" : "secondary"}>
-                    Week {week.week_number}
-                  </Badge>
-                  <span className="text-sm">Avg: {Math.round(week.avg_cigarettes)} cigarettes/day</span>
+            {stats.smokingProgress.length > 0 ? (
+              stats.smokingProgress.map((week: any) => (
+                <div key={week.week_number} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Badge variant={week.avg_cigarettes <= week.avg_target ? "default" : "secondary"}>
+                      Week {week.week_number}
+                    </Badge>
+                    <span className="text-sm">Avg: {Math.round(week.avg_cigarettes)} cigarettes/day</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Target: {Math.round(week.avg_target)}</span>
+                    {week.avg_cigarettes <= week.avg_target && <Award className="h-4 w-4 text-green-600" />}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Target: {Math.round(week.avg_target)}</span>
-                  {week.avg_cigarettes <= week.avg_target && <Award className="h-4 w-4 text-green-600" />}
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                No smoking data recorded yet. Start tracking to see your progress!
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>
@@ -184,6 +195,14 @@ export default function ProgressDashboard() {
                 <span className="text-sm font-medium">Smoke-Free Hero - Zero cigarettes this week!</span>
               </div>
             )}
+            {!workoutCompletionRate &&
+              !smokingReduction &&
+              !stats.workout?.avg_energy &&
+              !latestWeekProgress?.avg_cigarettes && (
+                <div className="col-span-2 text-center py-4 text-muted-foreground">
+                  Start tracking your progress to unlock achievements!
+                </div>
+              )}
           </div>
         </CardContent>
       </Card>

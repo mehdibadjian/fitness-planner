@@ -11,14 +11,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, CheckCircle, Clock, Zap } from "lucide-react"
-import { saveWorkoutEntry, getWorkoutData } from "@/lib/actions"
-import { toast } from "@/hooks/use-toast"
+import { saveWorkout, getWorkoutByDate, generateId } from "@/lib/storage"
+import { useToast } from "@/hooks/use-toast"
 
 interface WorkoutTrackerProps {
   initialData?: any
 }
 
 export default function WorkoutTracker({ initialData }: WorkoutTrackerProps) {
+  const { toast } = useToast()
   const [date, setDate] = useState(new Date().toISOString().split("T")[0])
   const [workoutDone, setWorkoutDone] = useState(false)
   const [duration, setDuration] = useState("")
@@ -26,8 +27,9 @@ export default function WorkoutTracker({ initialData }: WorkoutTrackerProps) {
   const [notes, setNotes] = useState("")
   const [weekNumber, setWeekNumber] = useState("1")
   const [isLoading, setIsLoading] = useState(false)
+  const [entryId, setEntryId] = useState(generateId())
 
-  // Calculate week number based on start date (you can adjust this logic)
+  // Calculate week number based on start date
   const calculateWeekNumber = (selectedDate: string) => {
     const startDate = new Date("2024-01-01") // Adjust to your program start date
     const currentDate = new Date(selectedDate)
@@ -41,16 +43,18 @@ export default function WorkoutTracker({ initialData }: WorkoutTrackerProps) {
     loadExistingData()
   }, [date])
 
-  const loadExistingData = async () => {
+  const loadExistingData = () => {
     try {
-      const existingData = await getWorkoutData(date)
+      const existingData = getWorkoutByDate(date)
       if (existingData) {
+        setEntryId(existingData.id)
         setWorkoutDone(existingData.workout_done)
         setDuration(existingData.duration?.toString() || "")
         setEnergy(existingData.energy?.toString() || "")
         setNotes(existingData.notes || "")
       } else {
         // Reset form for new date
+        setEntryId(generateId())
         setWorkoutDone(false)
         setDuration("")
         setEnergy("")
@@ -61,12 +65,13 @@ export default function WorkoutTracker({ initialData }: WorkoutTrackerProps) {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const result = await saveWorkoutEntry({
+      saveWorkout({
+        id: entryId,
         date,
         workout_done: workoutDone,
         duration: duration ? Number.parseInt(duration) : undefined,
@@ -75,18 +80,10 @@ export default function WorkoutTracker({ initialData }: WorkoutTrackerProps) {
         week_number: Number.parseInt(weekNumber),
       })
 
-      if (result.success) {
-        toast({
-          title: "Workout logged!",
-          description: "Your workout has been saved successfully.",
-        })
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to save workout",
-          variant: "destructive",
-        })
-      }
+      toast({
+        title: "Workout logged!",
+        description: "Your workout has been saved successfully.",
+      })
     } catch (error) {
       toast({
         title: "Error",

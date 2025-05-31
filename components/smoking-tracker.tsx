@@ -10,12 +10,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Heart, Target, Clock } from "lucide-react"
-import { saveSmokingEntry, getSmokingData } from "@/lib/actions"
-import { toast } from "@/hooks/use-toast"
+import { saveSmoking, getSmokingByDate, generateId } from "@/lib/storage"
+import { useToast } from "@/hooks/use-toast"
 
 const smokingTargets = [18, 16, 14, 12, 10, 8, 6, 4, 2, 1, 1, 0]
 
 export default function SmokingTracker() {
+  const { toast } = useToast()
   const [date, setDate] = useState(new Date().toISOString().split("T")[0])
   const [cigarettesSmoked, setCigarettesSmoked] = useState("")
   const [weekNumber, setWeekNumber] = useState("1")
@@ -23,6 +24,7 @@ export default function SmokingTracker() {
   const [cravingIntensity, setCravingIntensity] = useState("")
   const [notes, setNotes] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [entryId, setEntryId] = useState(generateId())
 
   const currentTarget = smokingTargets[Number.parseInt(weekNumber) - 1] || 0
 
@@ -39,15 +41,17 @@ export default function SmokingTracker() {
     loadExistingData()
   }, [date])
 
-  const loadExistingData = async () => {
+  const loadExistingData = () => {
     try {
-      const existingData = await getSmokingData(date)
+      const existingData = getSmokingByDate(date)
       if (existingData) {
+        setEntryId(existingData.id)
         setCigarettesSmoked(existingData.cigarettes_smoked.toString())
         setFirstCigTime(existingData.first_cig_time || "")
         setCravingIntensity(existingData.craving_intensity?.toString() || "")
         setNotes(existingData.notes || "")
       } else {
+        setEntryId(generateId())
         setCigarettesSmoked("")
         setFirstCigTime("")
         setCravingIntensity("")
@@ -58,14 +62,15 @@ export default function SmokingTracker() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const result = await saveSmokingEntry({
+      saveSmoking({
+        id: entryId,
         date,
-        cigarettes_smoked: Number.parseInt(cigarettesSmoked),
+        cigarettes_smoked: Number.parseInt(cigarettesSmoked || "0"),
         target: currentTarget,
         first_cig_time: firstCigTime,
         craving_intensity: cravingIntensity ? Number.parseInt(cravingIntensity) : undefined,
@@ -73,21 +78,13 @@ export default function SmokingTracker() {
         week_number: Number.parseInt(weekNumber),
       })
 
-      if (result.success) {
-        const isOnTarget = Number.parseInt(cigarettesSmoked) <= currentTarget
-        toast({
-          title: isOnTarget ? "Great job!" : "Entry logged",
-          description: isOnTarget
-            ? "You're meeting your smoking reduction target!"
-            : "Keep working toward your goal. Every step counts.",
-        })
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to save entry",
-          variant: "destructive",
-        })
-      }
+      const isOnTarget = Number.parseInt(cigarettesSmoked || "0") <= currentTarget
+      toast({
+        title: isOnTarget ? "Great job!" : "Entry logged",
+        description: isOnTarget
+          ? "You're meeting your smoking reduction target!"
+          : "Keep working toward your goal. Every step counts.",
+      })
     } catch (error) {
       toast({
         title: "Error",
