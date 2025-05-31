@@ -43,7 +43,10 @@ export default function SmokingTracker() {
 
   const loadExistingData = () => {
     try {
+      console.log("Loading existing data for date:", date) // Debug log
       const existingData = getSmokingByDate(date)
+      console.log("Found existing data:", existingData) // Debug log
+
       if (existingData) {
         setEntryId(existingData.id)
         setCigarettesSmoked(existingData.cigarettes_smoked.toString())
@@ -64,19 +67,34 @@ export default function SmokingTracker() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate required fields
+    if (!cigarettesSmoked) {
+      toast({
+        title: "Missing information",
+        description: "Please enter the number of cigarettes smoked.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      saveSmoking({
+      const smokingData = {
         id: entryId,
         date,
         cigarettes_smoked: Number.parseInt(cigarettesSmoked || "0"),
         target: currentTarget,
-        first_cig_time: firstCigTime,
+        first_cig_time: firstCigTime || undefined,
         craving_intensity: cravingIntensity ? Number.parseInt(cravingIntensity) : undefined,
-        notes,
+        notes: notes || undefined,
         week_number: Number.parseInt(weekNumber),
-      })
+      }
+
+      console.log("Saving smoking data:", smokingData) // Debug log
+
+      saveSmoking(smokingData)
 
       const isOnTarget = Number.parseInt(cigarettesSmoked || "0") <= currentTarget
       toast({
@@ -86,6 +104,7 @@ export default function SmokingTracker() {
           : "Keep working toward your goal. Every step counts.",
       })
     } catch (error) {
+      console.error("Error saving smoking entry:", error)
       toast({
         title: "Error",
         description: "Failed to save smoking entry",

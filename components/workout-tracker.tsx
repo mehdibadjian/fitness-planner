@@ -70,21 +70,26 @@ export default function WorkoutTracker({ initialData }: WorkoutTrackerProps) {
     setIsLoading(true)
 
     try {
-      saveWorkout({
+      const workoutData = {
         id: entryId,
         date,
         workout_done: workoutDone,
         duration: duration ? Number.parseInt(duration) : undefined,
         energy: energy ? Number.parseInt(energy) : undefined,
-        notes,
+        notes: notes || undefined,
         week_number: Number.parseInt(weekNumber),
-      })
+      }
+
+      console.log("Saving workout data:", workoutData) // Debug log
+
+      saveWorkout(workoutData)
 
       toast({
         title: "Workout logged!",
         description: "Your workout has been saved successfully.",
       })
     } catch (error) {
+      console.error("Error saving workout entry:", error)
       toast({
         title: "Error",
         description: "Failed to save workout entry",

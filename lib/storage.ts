@@ -59,25 +59,39 @@ async function autoSync() {
 
 // Workout storage functions
 export function saveWorkout(workout: WorkoutEntry): void {
-  if (!isBrowser) return
-
-  const workouts = getWorkouts()
-
-  // Check if workout with this date already exists
-  const existingIndex = workouts.findIndex((w) => w.date === workout.date)
-
-  if (existingIndex >= 0) {
-    // Update existing workout
-    workouts[existingIndex] = workout
-  } else {
-    // Add new workout
-    workouts.push(workout)
+  if (!isBrowser) {
+    console.warn("saveWorkout called on server side")
+    return
   }
 
-  localStorage.setItem("workouts", JSON.stringify(workouts))
+  try {
+    console.log("Saving workout entry:", workout) // Debug log
 
-  // Auto-sync after saving
-  setTimeout(autoSync, 1000)
+    const workouts = getWorkouts()
+    console.log("Current workout entries:", workouts.length) // Debug log
+
+    // Check if workout with this date already exists
+    const existingIndex = workouts.findIndex((w) => w.date === workout.date)
+
+    if (existingIndex >= 0) {
+      // Update existing workout
+      workouts[existingIndex] = workout
+      console.log("Updated existing workout at index:", existingIndex)
+    } else {
+      // Add new workout
+      workouts.push(workout)
+      console.log("Added new workout, total workouts:", workouts.length)
+    }
+
+    localStorage.setItem("workouts", JSON.stringify(workouts))
+    console.log("Saved to localStorage successfully")
+
+    // Auto-sync after saving
+    setTimeout(autoSync, 1000)
+  } catch (error) {
+    console.error("Error in saveWorkout:", error)
+    throw error
+  }
 }
 
 export function getWorkouts(): WorkoutEntry[] {
@@ -139,25 +153,39 @@ export function getWorkoutStats() {
 
 // Smoking storage functions
 export function saveSmoking(smoking: SmokingEntry): void {
-  if (!isBrowser) return
-
-  const smokingEntries = getSmokingEntries()
-
-  // Check if entry with this date already exists
-  const existingIndex = smokingEntries.findIndex((s) => s.date === smoking.date)
-
-  if (existingIndex >= 0) {
-    // Update existing entry
-    smokingEntries[existingIndex] = smoking
-  } else {
-    // Add new entry
-    smokingEntries.push(smoking)
+  if (!isBrowser) {
+    console.warn("saveSmoking called on server side")
+    return
   }
 
-  localStorage.setItem("smoking", JSON.stringify(smokingEntries))
+  try {
+    console.log("Saving smoking entry:", smoking) // Debug log
 
-  // Auto-sync after saving
-  setTimeout(autoSync, 1000)
+    const smokingEntries = getSmokingEntries()
+    console.log("Current smoking entries:", smokingEntries.length) // Debug log
+
+    // Check if entry with this date already exists
+    const existingIndex = smokingEntries.findIndex((s) => s.date === smoking.date)
+
+    if (existingIndex >= 0) {
+      // Update existing entry
+      smokingEntries[existingIndex] = smoking
+      console.log("Updated existing entry at index:", existingIndex)
+    } else {
+      // Add new entry
+      smokingEntries.push(smoking)
+      console.log("Added new entry, total entries:", smokingEntries.length)
+    }
+
+    localStorage.setItem("smoking", JSON.stringify(smokingEntries))
+    console.log("Saved to localStorage successfully")
+
+    // Auto-sync after saving
+    setTimeout(autoSync, 1000)
+  } catch (error) {
+    console.error("Error in saveSmoking:", error)
+    throw error
+  }
 }
 
 export function getSmokingEntries(): SmokingEntry[] {
