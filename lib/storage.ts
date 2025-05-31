@@ -1,6 +1,6 @@
 "use client"
 
-import { cloudStorage } from "./cloud-storage"
+import { getCloudStorage } from "./cloud-storage"
 
 export interface WorkoutEntry {
   id: string
@@ -23,6 +23,9 @@ export interface SmokingEntry {
   week_number: number
 }
 
+// Helper function to check if we're in a browser environment
+const isBrowser = typeof window !== "undefined"
+
 // Helper function to generate a unique ID
 export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2)
@@ -32,12 +35,13 @@ export function generateId(): string {
 let syncInProgress = false
 
 async function autoSync() {
-  if (syncInProgress) return
+  if (!isBrowser || syncInProgress) return
 
   syncInProgress = true
   try {
     const workouts = getWorkouts()
     const smoking = getSmokingEntries()
+    const cloudStorage = getCloudStorage()
 
     const result = await cloudStorage.syncData(workouts, smoking)
 
@@ -55,6 +59,8 @@ async function autoSync() {
 
 // Workout storage functions
 export function saveWorkout(workout: WorkoutEntry): void {
+  if (!isBrowser) return
+
   const workouts = getWorkouts()
 
   // Check if workout with this date already exists
@@ -75,21 +81,36 @@ export function saveWorkout(workout: WorkoutEntry): void {
 }
 
 export function getWorkouts(): WorkoutEntry[] {
+  if (!isBrowser) return []
+
   const data = localStorage.getItem("workouts")
   return data ? JSON.parse(data) : []
 }
 
 export function getWorkoutByDate(date: string): WorkoutEntry | undefined {
+  if (!isBrowser) return undefined
+
   const workouts = getWorkouts()
   return workouts.find((workout) => workout.date === date)
 }
 
 export function getWorkoutsByWeek(weekNumber: number): WorkoutEntry[] {
+  if (!isBrowser) return []
+
   const workouts = getWorkouts()
   return workouts.filter((workout) => workout.week_number === weekNumber)
 }
 
 export function getWorkoutStats() {
+  if (!isBrowser) {
+    return {
+      total_workouts: 0,
+      completed_workouts: 0,
+      avg_duration: 0,
+      avg_energy: 0,
+    }
+  }
+
   const workouts = getWorkouts()
 
   const total_workouts = workouts.length
@@ -118,6 +139,8 @@ export function getWorkoutStats() {
 
 // Smoking storage functions
 export function saveSmoking(smoking: SmokingEntry): void {
+  if (!isBrowser) return
+
   const smokingEntries = getSmokingEntries()
 
   // Check if entry with this date already exists
@@ -138,21 +161,36 @@ export function saveSmoking(smoking: SmokingEntry): void {
 }
 
 export function getSmokingEntries(): SmokingEntry[] {
+  if (!isBrowser) return []
+
   const data = localStorage.getItem("smoking")
   return data ? JSON.parse(data) : []
 }
 
 export function getSmokingByDate(date: string): SmokingEntry | undefined {
+  if (!isBrowser) return undefined
+
   const smokingEntries = getSmokingEntries()
   return smokingEntries.find((entry) => entry.date === date)
 }
 
 export function getSmokingByWeek(weekNumber: number): SmokingEntry[] {
+  if (!isBrowser) return []
+
   const smokingEntries = getSmokingEntries()
   return smokingEntries.filter((entry) => entry.week_number === weekNumber)
 }
 
 export function getSmokingStats() {
+  if (!isBrowser) {
+    return {
+      avg_daily: 0,
+      best_day: 0,
+      worst_day: 0,
+      total_smoked: 0,
+    }
+  }
+
   const smokingEntries = getSmokingEntries()
 
   if (smokingEntries.length === 0) {
@@ -178,6 +216,8 @@ export function getSmokingStats() {
 }
 
 export function getSmokingProgress() {
+  if (!isBrowser) return []
+
   const smokingEntries = getSmokingEntries()
 
   // Group by week
@@ -210,9 +250,12 @@ export function getSmokingProgress() {
 
 // Manual sync functions
 export async function manualSync(): Promise<boolean> {
+  if (!isBrowser) return false
+
   try {
     const workouts = getWorkouts()
     const smoking = getSmokingEntries()
+    const cloudStorage = getCloudStorage()
 
     const result = await cloudStorage.syncData(workouts, smoking)
 
@@ -230,15 +273,23 @@ export async function manualSync(): Promise<boolean> {
 }
 
 export function getLastSyncTime(): string | null {
+  if (!isBrowser) return null
+
+  const cloudStorage = getCloudStorage()
   return cloudStorage.getLastSyncTime()
 }
 
 export function getUserId(): string {
+  if (!isBrowser) return ""
+
+  const cloudStorage = getCloudStorage()
   return cloudStorage.getUserIdForSharing()
 }
 
 // Export data functions
 export function exportData(): string {
+  if (!isBrowser) return "{}"
+
   const data = {
     workouts: getWorkouts(),
     smoking: getSmokingEntries(),
@@ -249,6 +300,8 @@ export function exportData(): string {
 }
 
 export function importData(jsonData: string): boolean {
+  if (!isBrowser) return false
+
   try {
     const data = JSON.parse(jsonData)
 

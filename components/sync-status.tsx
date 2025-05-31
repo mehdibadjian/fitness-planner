@@ -13,13 +13,35 @@ export default function SyncStatus() {
   const [lastSync, setLastSync] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
   const [userId, setUserId] = useState<string>("")
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setLastSync(getLastSyncTime())
-      setUserId(getUserId())
-    }
+    setIsMounted(true)
+    setLastSync(getLastSyncTime())
+    setUserId(getUserId())
   }, [])
+
+  // Don't render anything during SSR
+  if (!isMounted) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Cloud className="h-5 w-5 text-blue-600" />
+            Data Sync & Backup
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-40 flex items-center justify-center">
+            <div className="animate-pulse text-center">
+              <div className="h-8 w-32 bg-slate-200 rounded mx-auto mb-4"></div>
+              <div className="h-4 w-48 bg-slate-200 rounded mx-auto"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const handleManualSync = async () => {
     setIsSyncing(true)

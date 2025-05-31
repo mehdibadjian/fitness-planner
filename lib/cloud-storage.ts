@@ -2,9 +2,6 @@
 
 import type { WorkoutEntry, SmokingEntry } from "./storage"
 
-// Simple cloud storage using a free service like JSONBin or similar
-// For demo purposes, we'll simulate cloud storage with a simple API
-
 interface CloudData {
   workouts: WorkoutEntry[]
   smoking: SmokingEntry[]
@@ -13,15 +10,22 @@ interface CloudData {
 }
 
 class CloudStorage {
-  private apiUrl = "https://api.jsonbin.io/v3/b" // Example API
-  private userId: string
+  private userId = ""
+  private isClient = false
 
   constructor() {
-    // Generate or retrieve user ID
-    this.userId = this.getUserId()
+    // Check if we're in a browser environment
+    this.isClient = typeof window !== "undefined"
+
+    // Only initialize if we're in the browser
+    if (this.isClient) {
+      this.userId = this.getUserId()
+    }
   }
 
   private getUserId(): string {
+    if (!this.isClient) return ""
+
     let userId = localStorage.getItem("fitness_user_id")
     if (!userId) {
       userId = this.generateUserId()
@@ -35,6 +39,8 @@ class CloudStorage {
   }
 
   async saveToCloud(workouts: WorkoutEntry[], smoking: SmokingEntry[]): Promise<boolean> {
+    if (!this.isClient) return false
+
     try {
       const data: CloudData = {
         workouts,
@@ -43,8 +49,6 @@ class CloudStorage {
         userId: this.userId,
       }
 
-      // For demo purposes, we'll use localStorage with a cloud prefix
-      // In a real app, you'd use a proper cloud service
       localStorage.setItem("cloud_backup", JSON.stringify(data))
       localStorage.setItem("last_cloud_sync", new Date().toISOString())
 
@@ -56,9 +60,9 @@ class CloudStorage {
   }
 
   async loadFromCloud(): Promise<CloudData | null> {
+    if (!this.isClient) return null
+
     try {
-      // For demo purposes, we'll use localStorage with a cloud prefix
-      // In a real app, you'd fetch from a proper cloud service
       const data = localStorage.getItem("cloud_backup")
       if (data) {
         return JSON.parse(data)
@@ -78,6 +82,14 @@ class CloudStorage {
     smoking: SmokingEntry[]
     synced: boolean
   }> {
+    if (!this.isClient) {
+      return {
+        workouts: localWorkouts,
+        smoking: localSmoking,
+        synced: false,
+      }
+    }
+
     try {
       const cloudData = await this.loadFromCloud()
 
@@ -138,12 +150,24 @@ class CloudStorage {
   }
 
   getLastSyncTime(): string | null {
+    if (!this.isClient) return null
     return localStorage.getItem("last_cloud_sync")
   }
 
   getUserIdForSharing(): string {
+    if (!this.isClient) return ""
     return this.userId
   }
 }
 
-export const cloudStorage = new CloudStorage()
+// Use lazy initialization to prevent server-side execution
+let cloudStorageInstance: CloudStorage | null = null
+
+export function getCloudStorage(): CloudStorage {
+  if (typeof window !== "undefined" && !cloudStorageInstance) {
+    cloudStorageInstance = new CloudStorage()
+  }
+
+  // Return a dummy instance for server-side rendering
+  return cloudStorageInstance || new CloudStorage()
+}
