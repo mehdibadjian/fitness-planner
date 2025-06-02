@@ -1,30 +1,113 @@
-# 12 week fitness plan
+# Fitness Planner
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+A modern web application built with Next.js 15, React 19, and TypeScript for tracking and managing fitness activities.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/mehdibadjians-projects/v0-12-week-fitness-plan)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/jmyu4C1yFfs)
+## Tech Stack
 
-## Overview
+- **Framework**: Next.js 15.2.4
+- **Language**: TypeScript
+- **UI Library**: React 19
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI
+- **Form Handling**: React Hook Form with Zod validation
+- **State Management**: React Hooks
+- **Database**: SQLite (better-sqlite3)
+- **Charts**: Recharts
+- **Date Handling**: date-fns
+- **Icons**: Lucide React
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Project Structure
 
-## Deployment
+```
+fitness-planner/
+├── app/                    # Next.js app directory (App Router)
+│   ├── tracking/          # Tracking-related pages
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
+├── components/            # Reusable React components
+├── hooks/                # Custom React hooks
+├── lib/                  # Utility functions and shared code
+├── public/              # Static assets
+├── styles/              # Additional styles
+└── types/               # TypeScript type definitions
+```
 
-Your project is live at:
+## Getting Started
 
-**[https://vercel.com/mehdibadjians-projects/v0-12-week-fitness-plan](https://vercel.com/mehdibadjians-projects/v0-12-week-fitness-plan)**
+1. **Prerequisites**
+   - Node.js (Latest LTS version recommended)
+   - pnpm (Package manager)
 
-## Build your app
+2. **Installation**
+   ```bash
+   pnpm install
+   ```
 
-Continue building your app on:
+3. **Development**
+   ```bash
+   pnpm dev
+   ```
+   The application will be available at `http://localhost:3000`
 
-**[https://v0.dev/chat/projects/jmyu4C1yFfs](https://v0.dev/chat/projects/jmyu4C1yFfs)**
+4. **Building for Production**
+   ```bash
+   pnpm build
+   ```
 
-## How It Works
+5. **Starting Production Server**
+   ```bash
+   pnpm start
+   ```
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## Key Features
+
+- Modern UI components using Radix UI
+- Responsive design with Tailwind CSS
+- Form validation with Zod
+- Interactive charts and data visualization
+- Dark mode support
+- Type-safe development with TypeScript
+
+## Available Scripts
+
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+
+## Dependencies
+
+### Main Dependencies
+- Next.js 15.2.4
+- React 19
+- TypeScript
+- Tailwind CSS
+- Radix UI Components
+- React Hook Form
+- Zod
+- Recharts
+- date-fns
+- SQLite
+
+### Development Dependencies
+- TypeScript
+- PostCSS
+- Tailwind CSS
+- ESLint
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is private and proprietary.
+
+## Support
+
+For support, please open an issue in the repository.
