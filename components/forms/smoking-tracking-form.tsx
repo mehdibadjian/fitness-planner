@@ -54,6 +54,7 @@ export function SmokingTrackingForm({ userId, onSuccess }: SmokingTrackingFormPr
   async function onSubmit(data: SmokingTrackingFormValues) {
     try {
       setIsSubmitting(true);
+      console.log("Submitting smoking data:", data); // Debug log
 
       // First create the smoking goal
       const goalResponse = await fetch("/api/tracking", {
@@ -71,8 +72,13 @@ export function SmokingTrackingForm({ userId, onSuccess }: SmokingTrackingFormPr
       });
 
       if (!goalResponse.ok) {
-        throw new Error("Failed to create smoking goal");
+        const errorData = await goalResponse.json();
+        console.error("Failed to create smoking goal:", errorData);
+        throw new Error(errorData.error || "Failed to create smoking goal");
       }
+
+      const goalData = await goalResponse.json();
+      console.log("Created smoking goal:", goalData); // Debug log
 
       // Record smoking progress
       const progressResponse = await fetch("/api/tracking", {
@@ -90,8 +96,13 @@ export function SmokingTrackingForm({ userId, onSuccess }: SmokingTrackingFormPr
       });
 
       if (!progressResponse.ok) {
-        throw new Error("Failed to record smoking progress");
+        const errorData = await progressResponse.json();
+        console.error("Failed to record smoking progress:", errorData);
+        throw new Error(errorData.error || "Failed to record smoking progress");
       }
+
+      const progressData = await progressResponse.json();
+      console.log("Recorded smoking progress:", progressData); // Debug log
 
       // If there's a craving, record it
       if (data.cravingIntensity) {
@@ -111,8 +122,13 @@ export function SmokingTrackingForm({ userId, onSuccess }: SmokingTrackingFormPr
         });
 
         if (!cravingResponse.ok) {
-          throw new Error("Failed to record craving");
+          const errorData = await cravingResponse.json();
+          console.error("Failed to record craving:", errorData);
+          throw new Error(errorData.error || "Failed to record craving");
         }
+
+        const cravingData = await cravingResponse.json();
+        console.log("Recorded craving:", cravingData); // Debug log
       }
 
       toast.success("Smoking progress recorded successfully!");
@@ -120,7 +136,7 @@ export function SmokingTrackingForm({ userId, onSuccess }: SmokingTrackingFormPr
       onSuccess?.();
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to record smoking progress");
+      toast.error(error instanceof Error ? error.message : "Failed to record smoking progress");
     } finally {
       setIsSubmitting(false);
     }

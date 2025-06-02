@@ -10,7 +10,11 @@ import {
   getCravings,
   getFitnessProgressSummary,
   getSmokingProgressSummary,
+  createDefaultUser,
 } from '@/lib/db-utils';
+
+// Ensure default user exists
+createDefaultUser();
 
 export async function POST(request: Request) {
   try {
@@ -27,8 +31,16 @@ export async function POST(request: Request) {
         return NextResponse.json(fitnessProgress);
 
       case 'smoking-goal':
-        const smokingGoal = await createSmokingGoal(data);
-        return NextResponse.json(smokingGoal);
+        try {
+          const smokingGoal = await createSmokingGoal(data);
+          return NextResponse.json(smokingGoal);
+        } catch (error) {
+          console.error('Error creating smoking goal:', error);
+          return NextResponse.json(
+            { error: 'Failed to create smoking goal. Please try again.' },
+            { status: 500 }
+          );
+        }
 
       case 'smoking-progress':
         const smokingProgress = await recordSmokingProgress(data);
@@ -47,7 +59,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error in tracking API:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

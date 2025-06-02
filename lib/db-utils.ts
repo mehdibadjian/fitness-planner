@@ -56,6 +56,14 @@ export const getUser = (id: number) => {
   return stmt.get(id);
 };
 
+export const createDefaultUser = () => {
+  const stmt = db.prepare(`
+    INSERT OR IGNORE INTO users (id, name, email)
+    VALUES (1, 'Default User', 'default@example.com')
+  `);
+  return stmt.run();
+};
+
 // Fitness operations
 export const createFitnessGoal = (data: z.infer<typeof FitnessGoalSchema>) => {
   const stmt = db.prepare(`
