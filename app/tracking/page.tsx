@@ -2,9 +2,22 @@ import { Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart3, Calendar, Heart, Settings } from "lucide-react"
+import { Metadata, Viewport } from "next"
 
 // Import client components
 import ClientTrackingPage from "@/components/client-tracking-page"
+
+export const metadata: Metadata = {
+  title: "Progress Tracking | Fitness Planner",
+  description: "Track your fitness and smoking cessation progress",
+}
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 // Server component
 export default function TrackingPage() {
