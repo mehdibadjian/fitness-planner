@@ -1,122 +1,105 @@
 import { NextResponse } from 'next/server';
-import {
-  createFitnessGoal,
-  recordFitnessProgress,
-  createSmokingGoal,
-  recordSmokingProgress,
-  recordCraving,
-  getFitnessProgress,
-  getSmokingProgress,
-  getCravings,
-  getFitnessProgressSummary,
-  getSmokingProgressSummary,
-  createDefaultUser,
-} from '@/lib/db-utils';
+import { prisma } from '@/lib/prisma';
 
-// Ensure default user exists
-createDefaultUser();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get('type');
+  const userId = parseInt(searchParams.get('userId') || '1');
 
-export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { type, data } = body;
-
     switch (type) {
-      case 'fitness-goal':
-        const fitnessGoal = await createFitnessGoal(data);
-        return NextResponse.json(fitnessGoal);
+      case 'fitness-summary':
+        const fitnessGoals = await prisma.fitnessGoal.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+        });
+        return NextResponse.json(fitnessGoals);
 
-      case 'fitness-progress':
-        const fitnessProgress = await recordFitnessProgress(data);
-        return NextResponse.json(fitnessProgress);
+      case 'smoking-summary':
+        const smokingGoals = await prisma.smokingGoal.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+        });
+        return NextResponse.json(smokingGoals);
 
-      case 'smoking-goal':
-        try {
-          const smokingGoal = await createSmokingGoal(data);
-          return NextResponse.json(smokingGoal);
-        } catch (error) {
-          console.error('Error creating smoking goal:', error);
-          return NextResponse.json(
-            { error: 'Failed to create smoking goal. Please try again.' },
-            { status: 500 }
-          );
-        }
-
-      case 'smoking-progress':
-        const smokingProgress = await recordSmokingProgress(data);
-        return NextResponse.json(smokingProgress);
-
-      case 'craving':
-        const craving = await recordCraving(data);
-        return NextResponse.json(craving);
+      case 'cravings':
+        const cravings = await prisma.craving.findMany({
+          where: { userId },
+          orderBy: { date: 'desc' },
+          take: 10,
+        });
+        return NextResponse.json(cravings);
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid tracking type' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error in tracking API:', error);
+    console.error('Error fetching data:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
-    const userId = searchParams.get('userId');
-    const goalId = searchParams.get('goalId');
+    const body = await request.json();
+    const { type, userId = 1, data } = body;
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      );
-    }
+    // Ensure user exists
+    const user = await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: { id: userId },
+    });
 
     switch (type) {
-      case 'fitness-progress':
-        if (!goalId) {
-          return NextResponse.json(
-            { error: 'Goal ID is required for fitness progress' },
-            { status: 400 }
-          );
-        }
-        const fitnessProgress = await getFitnessProgress(
-          parseInt(userId),
-          parseInt(goalId)
-        );
-        return NextResponse.json(fitnessProgress);
+      case 'fitness':
+        const fitnessGoal = await prisma.fitnessGoal.create({
+          data: {
+            userId: user.id,
+            goalType: data.goalType,
+            targetValue: data.targetValue,
+            currentValue: data.value,
+            startDate: new Date(data.startDate),
+            endDate: new Date(data.endDate),
+            status: 'active',
+          },
+        });
+        return NextResponse.json(fitnessGoal);
 
-      case 'smoking-progress':
-        const smokingProgress = await getSmokingProgress(parseInt(userId));
-        return NextResponse.json(smokingProgress);
+      case 'smoking':
+        const smokingGoal = await prisma.smokingGoal.create({
+          data: {
+            userId: user.id,
+            targetCigarettesPerDay: data.targetCigarettesPerDay,
+            averageCigarettes: data.averageCigarettes,
+            lowestCigarettes: data.lowestCigarettes,
+            startDate: new Date(data.startDate),
+            endDate: new Date(data.endDate),
+            status: 'active',
+          },
+        });
+        return NextResponse.json(smokingGoal);
 
-      case 'cravings':
-        const cravings = await getCravings(parseInt(userId));
-        return NextResponse.json(cravings);
-
-      case 'fitness-summary':
-        const fitnessSummary = await getFitnessProgressSummary(parseInt(userId));
-        return NextResponse.json(fitnessSummary);
-
-      case 'smoking-summary':
-        const smokingSummary = await getSmokingProgressSummary(parseInt(userId));
-        return NextResponse.json(smokingSummary);
+      case 'craving':
+        const craving = await prisma.craving.create({
+          data: {
+            userId: user.id,
+            intensity: data.intensity,
+            trigger: data.trigger,
+            notes: data.notes,
+            date: new Date(),
+          },
+        });
+        return NextResponse.json(craving);
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid tracking type' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error in tracking API:', error);
+    console.error('Error creating record:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
