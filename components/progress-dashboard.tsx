@@ -4,9 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Dumbbell, Cigarette } from "lucide-react"
-
-// Temporary user ID - replace with actual user authentication
-const TEMP_USER_ID = 1
+import { useSession } from "next-auth/react"
 
 interface FitnessGoal {
   goal_type: string
@@ -40,6 +38,8 @@ interface DashboardStats {
 }
 
 export default function ProgressDashboard() {
+  const { data: session } = useSession()
+  const userId = (session?.user as any)?.id
   const [stats, setStats] = useState<DashboardStats>({
     fitnessGoals: [],
     smokingGoals: [],
@@ -49,11 +49,12 @@ export default function ProgressDashboard() {
 
   useEffect(() => {
     async function fetchStats() {
+      if (!userId) return
       try {
         const [fitnessResponse, smokingResponse, cravingsResponse] = await Promise.all([
-          fetch("/api/tracking?type=fitness-summary&userId=1"),
-          fetch("/api/tracking?type=smoking-summary&userId=1"),
-          fetch("/api/tracking?type=cravings&userId=1"),
+          fetch(`/api/tracking?type=fitness-summary&userId=${userId}`),
+          fetch(`/api/tracking?type=smoking-summary&userId=${userId}`),
+          fetch(`/api/tracking?type=cravings&userId=${userId}`),
         ])
 
         const fitnessData = await fitnessResponse.json()
@@ -73,7 +74,7 @@ export default function ProgressDashboard() {
     }
 
     fetchStats()
-  }, [])
+  }, [userId])
 
   if (loading) {
     return <div>Loading...</div>

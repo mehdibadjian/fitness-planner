@@ -1,20 +1,21 @@
 "use client"
 
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FitnessTrackingForm } from "@/components/forms/fitness-tracking-form"
 
-// Temporary user ID - replace with actual user authentication
-const TEMP_USER_ID = 1
-
 export default function WorkoutTracker() {
+  const { data: session } = useSession()
+  const userId = (session?.user as any)?.id
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Track Your Workout</CardTitle>
-        <CardDescription>Record your fitness progress and set new goals</CardDescription>
+        <CardDescription>Record your fitness progress</CardDescription>
       </CardHeader>
       <CardContent>
-        <FitnessTrackingForm userId={TEMP_USER_ID} />
+        <FitnessTrackingForm userId={userId} />
       </CardContent>
     </Card>
   )

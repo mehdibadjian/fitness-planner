@@ -57,7 +57,7 @@ export function FitnessTrackingForm({ userId, onSuccess }: FitnessTrackingFormPr
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "fitness-goal",
+          type: "fitness",
           data: {
             userId,
             goalType: data.goalType,

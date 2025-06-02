@@ -2,10 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dumbbell, Cigarette } from "lucide-react"
 import Link from "next/link"
 import ProgressDashboard from "@/components/progress-dashboard"
+import AuthStatus from "@/components/auth-status"
 
 export default function Home() {
   return (
     <div className="container mx-auto p-4 space-y-6">
+      <AuthStatus />
       <h1 className="text-2xl font-bold">Fitness Planner</h1>
       
       <div className="grid grid-cols-2 gap-4">

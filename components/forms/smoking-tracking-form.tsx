@@ -61,7 +61,7 @@ export function SmokingTrackingForm({ userId, onSuccess }: SmokingTrackingFormPr
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "smoking-goal",
+          type: "smoking",
           data: {
             userId,
             targetCigarettesPerDay: data.targetCigarettesPerDay,
@@ -88,6 +88,7 @@ export function SmokingTrackingForm({ userId, onSuccess }: SmokingTrackingFormPr
           type: "smoking-progress",
           data: {
             userId,
+            goalId: goalData.id,
             cigarettesPerDay: data.cigarettesPerDay,
             date: new Date().toISOString().split("T")[0],
             notes: data.notes,

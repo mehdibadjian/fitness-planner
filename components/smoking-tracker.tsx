@@ -1,12 +1,13 @@
 "use client"
 
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SmokingTrackingForm } from "@/components/forms/smoking-tracking-form"
 
-// Temporary user ID - replace with actual user authentication
-const TEMP_USER_ID = 1
-
 export default function SmokingTracker() {
+  const { data: session } = useSession()
+  const userId = (session?.user as any)?.id
+
   return (
     <Card>
       <CardHeader>
@@ -14,7 +15,7 @@ export default function SmokingTracker() {
         <CardDescription>Record your smoking progress and cravings</CardDescription>
       </CardHeader>
       <CardContent>
-        <SmokingTrackingForm userId={TEMP_USER_ID} />
+        <SmokingTrackingForm userId={userId} />
       </CardContent>
     </Card>
   )

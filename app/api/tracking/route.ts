@@ -69,19 +69,41 @@ export async function POST(request: Request) {
         });
         return NextResponse.json(fitnessGoal);
 
+      case 'fitness-progress':
+        const fitnessProgress = await prisma.fitnessProgress.create({
+          data: {
+            userId: user.id,
+            goalId: data.goalId,
+            value: data.value,
+            date: new Date(data.date),
+            notes: data.notes,
+          },
+        });
+        return NextResponse.json(fitnessProgress);
+
       case 'smoking':
         const smokingGoal = await prisma.smokingGoal.create({
           data: {
             userId: user.id,
             targetCigarettesPerDay: data.targetCigarettesPerDay,
-            averageCigarettes: data.averageCigarettes,
-            lowestCigarettes: data.lowestCigarettes,
             startDate: new Date(data.startDate),
             endDate: new Date(data.endDate),
             status: 'active',
           },
         });
         return NextResponse.json(smokingGoal);
+
+      case 'smoking-progress':
+        const smokingProgress = await prisma.smokingProgress.create({
+          data: {
+            userId: user.id,
+            goalId: data.goalId,
+            cigarettesPerDay: data.cigarettesPerDay,
+            date: new Date(data.date),
+            notes: data.notes,
+          },
+        });
+        return NextResponse.json(smokingProgress);
 
       case 'craving':
         const craving = await prisma.craving.create({
